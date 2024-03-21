@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with GPT-3</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<h1>Chat with GPT-3</h1>
+<div id="chatContainer"></div>
+<input type="text" id="userMessage" placeholder="Type your message here" aria-label="Type your message here">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    document.getElementById('userMessage').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const userMessage = document.getElementById('userMessage').value.trim();
+        if (!userMessage) return; // Prevent sending empty messages
+
+        const chatContainer = document.getElementById('chatContainer');
+        appendMessage("You: " + userMessage, "user");
+
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: userMessage
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseText = await response.text();
+            appendMessage("GPT-3: " + responseText, "bot");
+        } catch (error) {
+            console.error('Error:', error);
+            appendMessage("Error sending message.", "error");
+        } finally {
+            document.getElementById('userMessage').value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    }
+
+    function appendMessage(text, className) {
+        const chatContainer = document.getElementById('chatContainer');
+        const messageElement = document.createElement("div");
+        messageElement.textContent = text;
+        messageElement.className = `message ${className}`;
+        chatContainer.appendChild(messageElement);
+    }
+</script>
+</body>
+</html>
